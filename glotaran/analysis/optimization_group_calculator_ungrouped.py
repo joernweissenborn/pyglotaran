@@ -24,9 +24,9 @@ class OptimizationGroupCalculatorUngrouped(OptimizationGroupCalculator):
     def __init__(self, group: OptimizationGroup):
         super().__init__(group)
 
-        self._global_matrices = {}
-        self._flattened_data = {}
-        self._flattened_weights = {}
+        self._global_matrices: dict[str, CalculatedMatrix] = {}
+        self._flattened_data: dict[str, np.ndarray] = {}
+        self._flattened_weights: dict[str, np.ndarray] = {}
         for label, dataset_model in group.dataset_models.items():
             if dataset_model.has_global_model():
                 self._flattened_data[label] = dataset_model.get_data().T.flatten()
@@ -34,7 +34,7 @@ class OptimizationGroupCalculatorUngrouped(OptimizationGroupCalculator):
                 if weight is not None:
                     weight = weight.T.flatten()
                     self._flattened_data[label] *= weight
-                    self._flattened_weight[label] = weight
+                    self._flattened_weights[label] = weight
 
     @property
     def global_matrices(self) -> dict[str, CalculatedMatrix]:
@@ -49,8 +49,8 @@ class OptimizationGroupCalculatorUngrouped(OptimizationGroupCalculator):
         """Calculates the model matrices."""
 
         self._group._matrices = {}
-        self._global_matrices = {}
         self._group._reduced_matrices = {}
+        self._global_matrices = {}
 
         for label, dataset_model in self._group.dataset_models.items():
 
@@ -135,9 +135,9 @@ class OptimizationGroupCalculatorUngrouped(OptimizationGroupCalculator):
 
         for i, index in enumerate(global_axis):
             reduced_clp_labels, reduced_matrix = (
-                self._group.reduced_matrices[label][i]
+                self._group.reduced_matrices[label][i]  # type:ignore[call-overload]
                 if dataset_model.is_index_dependent()
-                else self._group.reduced_matrices[label]
+                else self._group.reduced_matrices[label]  # type:ignore[call-overload]
             )
             if not dataset_model.is_index_dependent():
                 reduced_matrix = reduced_matrix.copy()
@@ -184,7 +184,9 @@ class OptimizationGroupCalculatorUngrouped(OptimizationGroupCalculator):
 
     def _calculate_full_model_residual(self, label: str, dataset_model: DatasetModel):
 
-        model_matrix = self._group.matrices[label]
+        model_matrix: CalculatedMatrix | list[CalculatedMatrix] = self._group.matrices[
+            label
+        ]  # type:ignore[assignment]
         global_matrix = self.global_matrices[label].matrix
 
         if dataset_model.is_index_dependent():

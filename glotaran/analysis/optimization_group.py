@@ -93,14 +93,14 @@ class OptimizationGroup:
 
         # all of the above are always not None
 
-        self._matrices = None
-        self._reduced_matrices = None
-        self._reduced_clps = None
-        self._clps = None
-        self._weighted_residuals = None
-        self._residuals = None
-        self._additional_penalty = None
-        self._full_penalty = None
+        self._matrices: dict[str, CalculatedMatrix | list[CalculatedMatrix]] = None
+        self._reduced_matrices: dict[str, CalculatedMatrix | list[CalculatedMatrix]] = None
+        self._reduced_clps: dict[str, list[np.ndarray]] = None
+        self._clps: dict[str, list[np.ndarray]] = None
+        self._weighted_residuals: dict[str, list[np.ndarray]] = None
+        self._residuals: dict[str, list[np.ndarray]] = None
+        self._additional_penalty: list[np.ndarray] = None
+        self._full_penalty: np.ndarray = None
 
     @property
     def model(self) -> Model:

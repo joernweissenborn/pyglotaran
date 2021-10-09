@@ -62,7 +62,9 @@ def calculate_matrix(
         dataset_model.swap_dimensions()
 
     for scale, megacomplex in megacomplex_iterator():
-        this_clp_labels, this_matrix = megacomplex.calculate_matrix(dataset_model, indices)
+        this_clp_labels, this_matrix = megacomplex.calculate_matrix(  # type:ignore[union-attr]
+            dataset_model, indices
+        )
 
         if scale is not None:
             this_matrix *= scale
@@ -76,7 +78,7 @@ def calculate_matrix(
     if as_global_model:
         dataset_model.swap_dimensions()
 
-    return CalculatedMatrix(clp_labels, matrix)
+    return CalculatedMatrix(clp_labels, matrix)  # type:ignore[arg-type]
 
 
 def combine_matrix(matrix, this_matrix, clp_labels, this_clp_labels):
@@ -113,12 +115,14 @@ def apply_constraints(
     index: Any | None,
 ) -> CalculatedMatrix:
 
-    if len(model.clp_constraints) == 0:
+    if len(model.clp_constraints) == 0:  # type:ignore[attr-defined]
         return matrix
 
     clp_labels = matrix.clp_labels
     removed_clp_labels = [
-        c.target for c in model.clp_constraints if c.target in clp_labels and c.applies(index)
+        c.target
+        for c in model.clp_constraints  # type:ignore[attr-defined]
+        if c.target in clp_labels and c.applies(index)
     ]
     reduced_clp_labels = [c for c in clp_labels if c not in removed_clp_labels]
     mask = [label in reduced_clp_labels for label in clp_labels]
@@ -133,14 +137,14 @@ def apply_relations(
     index: Any | None,
 ) -> CalculatedMatrix:
 
-    if len(model.clp_relations) == 0:
+    if len(model.clp_relations) == 0:  # type:ignore[attr-defined]
         return matrix
 
     clp_labels = matrix.clp_labels
     relation_matrix = np.diagflat([1.0 for _ in clp_labels])
 
     idx_to_delete = []
-    for relation in model.clp_relations:
+    for relation in model.clp_relations:  # type:ignore[attr-defined]
         if relation.target in clp_labels and relation.applies(index):
 
             if relation.source not in clp_labels:
@@ -166,7 +170,10 @@ def retrieve_clps(
     reduced_clps: xr.DataArray,
     index: Any | None,
 ) -> xr.DataArray:
-    if len(model.clp_relations) == 0 and len(model.clp_constraints) == 0:
+    if (
+        len(model.clp_relations) == 0  # type:ignore[attr-defined]
+        and len(model.clp_constraints) == 0  # type:ignore[attr-defined]
+    ):
         return reduced_clps
 
     clps = np.zeros(len(clp_labels))
@@ -175,7 +182,7 @@ def retrieve_clps(
         idx = clp_labels.index(label)
         clps[idx] = reduced_clps[i]
 
-    for relation in model.clp_relations:
+    for relation in model.clp_relations:  # type:ignore[attr-defined]
         relation = relation.fill(model, parameters)
         if (
             relation.target in clp_labels
@@ -202,7 +209,7 @@ def calculate_clp_penalties(
     # 2. sum up contributions on the global_axis (future?)
 
     penalties = []
-    for penalty in model.clp_area_penalties:
+    for penalty in model.clp_area_penalties:  # type:ignore[attr-defined]
         penalty = penalty.fill(model, parameters)
         source_area = np.array([])
         target_area = np.array([])
@@ -245,13 +252,13 @@ def calculate_clp_penalties(
 
 def _get_area(
     clp_label: str,
-    clp_labels: list[list[str]],
+    clp_labels: list[list[str]] | list[str],
     clps: list[np.ndarray],
     intervals: list[tuple[float, float]],
     global_axis: np.ndarray,
     dataset_axis: np.ndarray,
 ) -> np.ndarray:
-    area = []
+    area: list[float] = []
 
     for interval in intervals:
         if interval[0] > global_axis[-1]:
@@ -262,7 +269,9 @@ def _get_area(
         )
         start_idx, end_idx = get_idx_from_interval(bounded_interval, global_axis)
         for i in range(start_idx, end_idx + 1):
-            index_clp_labels = clp_labels[i] if isinstance(clp_labels[0], list) else clp_labels
+            index_clp_labels: list[str] = (  # type:ignore[assignment]
+                clp_labels[i] if isinstance(clp_labels[0], list) else clp_labels
+            )
             if clp_label in index_clp_labels:
                 area.append(clps[i][index_clp_labels.index(clp_label)])
 
