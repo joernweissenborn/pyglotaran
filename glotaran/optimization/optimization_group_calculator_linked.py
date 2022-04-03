@@ -333,6 +333,30 @@ class OptimizationGroupCalculatorLinked(OptimizationGroupCalculator):
             self._group._residuals,
         )
 
+    def _calc_residual(self):
+
+        for i, aligned_index in enumerate(self._aligned_indices):
+
+            reduced_matrix = self._matrix_provider.get_matrix(i)
+            data = self._aligned_data[i]
+
+            reduced_clps, self._aligned_weighted_residual[i] = self._group._residual_function(
+                reduced_matrix.matrix, data
+            )
+            self._aligned_clps[i] = retrieve_clps(
+                self._group.model,
+                self._group.parameters,
+                self._matrix_provider.get_full_clp_label(i),
+                reduced_matrix.clp_labels,
+                reduced_clps,
+                aligned_index,
+            )
+            self._aligned_residual[i] = (
+                self._aligned_weighted_residual[i] / self._aligned_weights[i]
+                if self._aligned_weights[i] is not None
+                else self._aligned_weighted_residual[i]
+            )
+
     def _index_dependent_residual(
         self,
         group_model: DatasetIndexModelGroup,

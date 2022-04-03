@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import itertools
+from dataclasses import dataclass
 from typing import Any
-from typing import NamedTuple
 
 import numba as nb
 import numpy as np
@@ -13,7 +13,8 @@ from glotaran.model import Model
 from glotaran.parameter import ParameterGroup
 
 
-class CalculatedMatrix(NamedTuple):
+@dataclass(frozen=True)
+class CalculatedMatrix:
     clp_labels: list[str]
     matrix: np.ndarray
 

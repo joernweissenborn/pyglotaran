@@ -95,8 +95,8 @@ class OptimizationGroup:
 
         # all of the above are always not None
 
-        self._matrices = None
-        self._reduced_matrices = None
+        self._matrices = {}
+        self._reduced_matrices = {}
         self._reduced_clps = None
         self._clps = None
         self._weighted_residuals = None
