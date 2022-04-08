@@ -1,11 +1,59 @@
 import numpy as np
+from typing import Literal
 import xarray as xr
+from numbers import Number
 
 
-class LinkedDataset:
-    def __init__(self, dataset_models):
+from glotaran.model import DatasetGroup
+from glotaran.project import Scheme
 
-        # create aligned datasets
+
+def align_index(
+    index: Number,
+    target_axis: np.typing.ArrayLike,
+    tolerance: Number,
+    method: Literal["nearest", "backward", "forward"],
+) -> Number:
+    diff = target_axis - index
+
+    if method == "forward":
+        diff = diff[diff >= 0]
+    elif method == "backward":
+        diff = diff[diff <= 0]
+
+    diff = np.abs(diff)
+
+    if diff.min() <= tolerance:
+        index = target_axis[diff.argmin()].values
+    return index
+
+
+class LinkedDataProvider:
+    @property
+    def group_definitions(self) -> dict[str, list[str]]:
+        return self._group_definitions
+
+    @property
+    def aligned_group_labels(self) -> list[str]:
+        return self._aligned_group_labels
+
+    @property
+    def aligned_weights(self) -> list[np.typing.ArrayLike | None]:
+        return self._aligned_weights
+
+    @property
+    def aligned_dataset_indices(self) -> list[list[float]]:
+        return self._aligned_dataset_indices
+
+    @property
+    def aligned_data(self) -> list[np.typing.ArrayLike]:
+        return self._aligned_data
+
+    def __init__(
+        self,
+        dataset_group: DatasetGroup,
+        scheme: Scheme,
+    ):
 
         aligned_axis_values = None
         aligned_datasets = {}
@@ -13,7 +61,10 @@ class LinkedDataset:
         aligned_dataset_weights = {}
         aligned_dataset_indices = {}
 
-        for label, dataset_model in dataset_models.items():
+        for label, dataset_model in dataset_group.dataset_models.items():
+            dataset_model = dataset_model.fill(scheme.model, scheme.parameters).set_data(
+                scheme.data[label]
+            )
             data = dataset_model.get_data()
 
             aligned_global_axis = dataset_model.get_global_axis()
@@ -21,12 +72,18 @@ class LinkedDataset:
                 aligned_axis_values = aligned_global_axis
             else:
                 aligned_global_axis = [
-                    align_index(index, aligned_axis_values, tolerance)
+                    align_index(
+                        index,
+                        aligned_axis_values,
+                        scheme.clp_link_tolerance,
+                        scheme.clp_link_method,
+                    )
                     for index in aligned_global_axis
                 ]
                 if len(np.unique(aligned_global_axis)) != len(aligned_global_axis):
                     raise ValueError(
-                        "Cannot link datasets, aligning is ambiguous. Try lower link tolerance."
+                        "Cannot link datasets, aligning is ambiguous. \n\n"
+                        "Try to lower link tolerance or change the alignment method."
                     )
                 aligned_axis_values = np.unique(
                     np.concatenate([aligned_axis_values, aligned_global_axis])
