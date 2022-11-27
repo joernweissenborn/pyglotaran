@@ -9,6 +9,9 @@ import xarray as xr
 from attrs import define
 from attrs import field
 
+from glotaran.model.clp_constraint import ClpConstraint
+from glotaran.model.clp_penalties import ClpPenalty
+from glotaran.model.clp_relation import ClpRelation
 from glotaran.model.dataset_model import DatasetModel
 from glotaran.model.dataset_model import get_dataset_model_model_dimension
 from glotaran.model.dataset_model import has_dataset_model_global_model
@@ -48,6 +51,10 @@ class DatasetGroup:
     parameters: Parameters | None = None
 
     dataset_models: dict[str, DatasetModel] = field(factory=dict)
+
+    clp_penalties: list[ClpPenalty] = []
+    clp_constraints: list[ClpConstraint] = []
+    clp_relations: list[ClpRelation] = []
 
     def set_parameters(self, parameters: Parameters):
         """Set the group parameters.
