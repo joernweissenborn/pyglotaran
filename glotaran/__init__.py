@@ -2,9 +2,9 @@
 from glotaran.deprecation.deprecation_utils import deprecate_submodule
 from glotaran.plugin_system.base_registry import load_plugins
 
-load_plugins()
-
 __version__ = "0.7.0.dev0"
+
+load_plugins()
 
 examples = deprecate_submodule(
     deprecated_module_name="glotaran.examples",
