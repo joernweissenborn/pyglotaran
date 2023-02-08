@@ -287,7 +287,6 @@ def load_scheme(file_name: StrOrPath, format_name: str | None = None, **kwargs: 
     io = get_project_io(format_name or inferr_file_format(file_name))
 
     scheme = io.load_scheme(Path(file_name).as_posix(), **kwargs)
-    scheme.source_path = Path(file_name).as_posix()
     return scheme
 
 
