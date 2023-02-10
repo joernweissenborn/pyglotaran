@@ -1,4 +1,4 @@
-"""This module contains the megacomplex."""
+"""This module contains the model."""
 from __future__ import annotations
 
 import abc
@@ -10,7 +10,7 @@ import numpy as np
 import xarray as xr
 
 from glotaran.model.item import TypedItem
-from glotaran.plugin_system.megacomplex_registration import register_megacomplex
+from glotaran.plugin_system.model_registration import register_model
 
 if TYPE_CHECKING:
 
@@ -32,10 +32,10 @@ class Model(TypedItem, abc.ABC):  # type:ignore[misc]
     label: str
 
     def __init_subclass__(cls):
-        """Register the megacomplex if necessary."""
+        """Register the model if necessary."""
         super().__init_subclass__()
         if cls.register_as is not None:
-            register_megacomplex(cls.register_as, cls)
+            register_model(cls.register_as, cls)
 
     @abc.abstractmethod
     def calculate_matrix(
@@ -45,7 +45,7 @@ class Model(TypedItem, abc.ABC):  # type:ignore[misc]
         model_axis: np.typing.ArrayLike,
         **kwargs,
     ) -> tuple[list[str], np.typing.ArrayLike]:
-        """Calculate the megacomplex matrix.
+        """Calculate the model matrix.
 
         Parameters
         ----------
@@ -79,7 +79,7 @@ class Model(TypedItem, abc.ABC):  # type:ignore[misc]
         is_full_model: bool
             Whether the model is a full model.
         as_global: bool
-            Whether megacomplex is calculated as global megacomplex.
+            Whether model is calculated as global model.
         """
         pass
 
