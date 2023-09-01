@@ -1,2 +1,0 @@
-from benchmarks.integration.ex_two_datasets.benchmark import IntegrationTwoDatasets
-from benchmarks.unit.analysis.bench_optimize import BenchmarkOptimize
